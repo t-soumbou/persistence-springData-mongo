@@ -1,8 +1,8 @@
 
 package org.demo.persistence.impl.springMongo;
 
-import org.demo.persistence.ReviewPersistenceGenericTest;
-import org.demo.data.record.ReviewRecord;
+import org.demo.persistence.CarPersistenceGenericTest;
+import org.demo.data.record.CarRecord;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +23,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = MongoConfig.class)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class ReviewPersistenceSpringMongoTest extends ReviewPersistenceGenericTest {
+public class CarPersistenceSpringMongoTest extends CarPersistenceGenericTest {
 
-	private static final Logger LOGGER = Logger.getLogger(ReviewPersistenceSpringMongoTest.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(CarPersistenceSpringMongoTest.class.getName());
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
@@ -40,15 +40,15 @@ public class ReviewPersistenceSpringMongoTest extends ReviewPersistenceGenericTe
 
 	@After
 	public void tearDown() throws Exception {
-		mongoTemplate.dropCollection(ReviewRecord.class);
+		mongoTemplate.dropCollection(CarRecord.class);
 	}
 
 	@Test
 	public void testPersistenceService() throws Exception {
 
-		ReviewPersistenceSpringMongo persistence = new ReviewPersistenceSpringMongo();
+		CarPersistenceSpringMongo persistence = new CarPersistenceSpringMongo();
 		persistence.setMongoTemplate(mongoTemplate);
-    	testPersistenceService(persistence);
+		testPersistenceServiceWithAutoincrementedKey(persistence);
 	}
 
 }

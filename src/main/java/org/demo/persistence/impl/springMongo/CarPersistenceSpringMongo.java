@@ -10,20 +10,20 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import com.mongodb.WriteResult;
+import org.demo.persistence.impl.springMongo.commons.SequenceDAO;
 
-import org.demo.data.record.AuthorRecord;
-import org.demo.persistence.AuthorPersistence;
+import org.demo.data.record.CarRecord;
+import org.demo.persistence.CarPersistence;
 
 /**
- * Author persistence service - SpringMongo implementation 
- *
+ * Car persistence service - SpringMongo implementation 
  */
-@Named("AuthorPersistence")
-public class AuthorPersistenceSpringMongo implements AuthorPersistence {
+@Named("CarPersistence")
+public class CarPersistenceSpringMongo implements CarPersistence {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	private static final Class<AuthorRecord> entityClass = AuthorRecord.class;
+	private static final Class<CarRecord> entityClass = CarRecord.class;
 
 	public void setMongoTemplate(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;
@@ -38,45 +38,56 @@ public class AuthorPersistenceSpringMongo implements AuthorPersistence {
 	 * @param id
 	 * @return the new instance
 	 */
-	private AuthorRecord newInstanceWithPrimaryKey(Integer id) {
-		AuthorRecord record = new AuthorRecord();
+	private CarRecord newInstanceWithPrimaryKey(int id) {
+		CarRecord record = new CarRecord();
         record.setId(id); 
 		return record;
 	}
 
-	@SuppressWarnings("unused")
-	private void setAutoIncrementedKey(AuthorRecord record, long value) {
-		throw new IllegalStateException("Unexpected call to method 'setAutoIncrementedKey'");
+	
+	private void setAutoIncrementedKey(CarRecord record, long value) {
+		record.setId((int)value);
 	}
 
-	private Update updateQuery(AuthorRecord record) {
+	private Update updateQuery(CarRecord record) {
 		Update update = new Update();
-		update.set("firstName", record.getFirstName());
-		update.set("lastName", record.getLastName());
+		update.set("lastname", record.getLastname());
+		update.set("firstname", record.getFirstname());
 		return update;
 	}
 
-	protected Query queryForIdentifyBean(AuthorRecord record) {
+	protected Query queryForIdentifyBean(CarRecord record) {
 		Query query = new Query(Criteria.where("id").is(record.getId()));
 	    return query;
 	}
 
+	private void inserIncr(CarRecord record) {
+		SequenceDAO sequenceDAO = new SequenceDAO(mongoTemplate, "CarRecord");
+		do {
+			try {
+				setAutoIncrementedKey(record, sequenceDAO.nextVal("CarRecord"));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} while (exists(record) == true);
+		mongoTemplate.insert(record);
+	}
 	//-------------------------------------------------------------------------------------
 	// Persistence interface implementations
 	//-------------------------------------------------------------------------------------
 	@Override
 	public long countAll() {
-		return mongoTemplate.count(new Query(), AuthorRecord.class);
+		return mongoTemplate.count(new Query(), CarRecord.class);
 	}
 	
 	@Override
-	public AuthorRecord create(AuthorRecord record) {
-		mongoTemplate.insert(record);
+	public CarRecord create(CarRecord record) {
+		inserIncr(record);
 		return record;
 	}
 
 	@Override
-	public boolean delete(AuthorRecord record) {
+	public boolean delete(CarRecord record) {
 		Query query = queryForIdentifyBean(record);
 		WriteResult result = mongoTemplate.remove(query, entityClass);
 		return result.getN() > 0;
@@ -84,45 +95,45 @@ public class AuthorPersistenceSpringMongo implements AuthorPersistence {
 
 	@Override
 	public boolean deleteById(Integer id) {
-		AuthorRecord record = newInstanceWithPrimaryKey(id);
+		CarRecord record = newInstanceWithPrimaryKey(id);
 		Query query = queryForIdentifyBean(record);
 		WriteResult result = mongoTemplate.remove(query, entityClass);
 		return result.getN() > 0;
 	}
 
 	@Override
-	public boolean exists(AuthorRecord record) {
+	public boolean exists(CarRecord record) {
 		Query query = queryForIdentifyBean(record);
 		return mongoTemplate.exists(query, entityClass);
 	}
 
 	@Override
 	public boolean exists(Integer id) {
-		AuthorRecord record = newInstanceWithPrimaryKey(id);
+		CarRecord record = newInstanceWithPrimaryKey(id);
 		Query query = queryForIdentifyBean(record);
 		return mongoTemplate.exists(query, entityClass);
 	}
 
 	@Override
-	public List<AuthorRecord> findAll() {
+	public List<CarRecord> findAll() {
 		return mongoTemplate.findAll(entityClass);
 	}
 
 	@Override
-	public AuthorRecord findById(Integer id) {
-        AuthorRecord record = newInstanceWithPrimaryKey(id);
+	public CarRecord findById(Integer id) {
+        CarRecord record = newInstanceWithPrimaryKey(id);
 		Query query = queryForIdentifyBean(record);
 		return mongoTemplate.findOne(query, entityClass);
 	}
 
 	@Override
-	public AuthorRecord save(AuthorRecord record) {
+	public CarRecord save(CarRecord record) {
 		mongoTemplate.save(record);
 		return record;
 	}
 
 	@Override
-	public boolean update(AuthorRecord record) {
+	public boolean update(CarRecord record) {
 		Query query = queryForIdentifyBean(record);
 		Update update = updateQuery(record);
 		WriteResult result = mongoTemplate.updateFirst(query, update, entityClass);
